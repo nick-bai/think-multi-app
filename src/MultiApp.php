@@ -125,6 +125,13 @@ class MultiApp
                 $deny = $this->app->config->get('app.deny_app_list', []);
                 $name = current(explode('/', $path));
 
+                $appMap = $this->app->config->get('route.all_module', []);
+
+                if (!isset($appMap[$name])) {
+                    $name = $this->app->config->get('route.index', 'index');
+                    $path = $name . '/' . $path;
+                }
+
                 if (strpos($name, '.')) {
                     $name = strstr($name, '.', true);
                 }
