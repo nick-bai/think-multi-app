@@ -125,13 +125,6 @@ class MultiApp
                 $deny = $this->app->config->get('app.deny_app_list', []);
                 $name = current(explode('/', $path));
 
-                $appMap = $this->app->config->get('route.all_module', []);
-
-                if (!isset($appMap[$name])) {
-                    $name = $this->app->config->get('route.index', 'index');
-                    $path = $name . '/' . $path;
-                }
-
                 if (strpos($name, '.')) {
                     $name = strstr($name, '.', true);
                 }
@@ -196,14 +189,22 @@ class MultiApp
      */
     protected function setApp(string $appName): void
     {
-         // 将多应用名称设置为控制器层！
-        $this->app->config->set([ 'controller_layer' => $this->getScriptName()=='index'?'controller':''], 'route');
+        // 将多应用名称设置为控制器层！
+        $this->app->config->set([ 'controller_layer' => $this->getScriptName() == 'index' ? 'controller' : ''], 'route');
         // 拆分并patinfo,将应用名称去除并重组
-        $pathinfo_array = explode('/', \request()->pathinfo());
-        $appName = $pathinfo_array[0];
-        unset($pathinfo_array[0]);
-        \request()->setPathinfo(join('/',$pathinfo_array)) ;
+        $pathinfoArray = explode('/', \request()->pathinfo());
+
+        if (count($pathinfoArray) < 3 && $pathinfoArray['0'] != 'admin') {
+            $appName = 'index';
+        } else {
+            $appName = $pathinfoArray[0];
+            unset($pathinfoArray[0]);
+        }
+
+        \request()->setPathinfo(join('/', $pathinfoArray)) ;
         // pathinfo中拆出应用名称并替换原来的应用名称
+        $appName = empty($appName) ? 'index' : $appName;
+        $this->appName = $appName;
         $this->app->http->name($appName);
 
         $appPath = $this->path ?: $this->app->getBasePath() . $appName . DIRECTORY_SEPARATOR;
