@@ -196,7 +196,14 @@ class MultiApp
      */
     protected function setApp(string $appName): void
     {
-        $this->appName = $appName;
+         // 将多应用名称设置为控制器层！
+        $this->app->config->set([ 'controller_layer' => $this->getScriptName()=='index'?'controller':''], 'route');
+        // 拆分并patinfo,将应用名称去除并重组
+        $pathinfo_array = explode('/', \request()->pathinfo());
+        $appName = $pathinfo_array[0];
+        unset($pathinfo_array[0]);
+        \request()->setPathinfo(join('/',$pathinfo_array)) ;
+        // pathinfo中拆出应用名称并替换原来的应用名称
         $this->app->http->name($appName);
 
         $appPath = $this->path ?: $this->app->getBasePath() . $appName . DIRECTORY_SEPARATOR;
